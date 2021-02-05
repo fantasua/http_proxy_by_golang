@@ -10,14 +10,14 @@ import (
 func main() {
 	fmt.Printf("http_proxy_go started\n")
 
-	port := "127.0.0.1:8081"
+	proxy_addr := "127.0.0.1:2333"
 
-	server, err := net.Listen("tcp", port)
+	server, err := net.Listen("tcp", proxy_addr)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	fmt.Printf("listen on %s\n", port)
+	fmt.Printf("listen on %s\n", proxy_addr)
 	for {
 		client, err := server.Accept()
 		// 错误处理

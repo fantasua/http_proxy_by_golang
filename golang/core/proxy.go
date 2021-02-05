@@ -36,8 +36,6 @@ func (ps *ProxyServer) Handle() {
 	}
 	defer ps.client.Close()
 
-	fmt.Printf("remote addr: %v\n", ps.client.RemoteAddr())
-
 	// 从请求中读取数据
 	_, err := ps.client.Read(ps.buf[:])
 	if err != nil {
@@ -48,6 +46,7 @@ func (ps *ProxyServer) Handle() {
 	var method, URL string
 	fmt.Sscanf(string(ps.buf[:bytes.IndexByte(ps.buf[:], '\n')]), "%s%s", &method, &URL)
 	targetURL, err := url.Parse(URL)
+	log.Printf("target url : %s\n", URL)
 	if err != nil {
 		log.Println(err)
 		return
@@ -73,7 +72,7 @@ func (ps *ProxyServer) Handle() {
 		fmt.Fprint(ps.client, "HTTP/1.1 200 Connection established\\r\\n\\r\\n")
 	} else {
 		// HTTP
-		ps.server, err = ps.processHTTPS(targetURL)
+		ps.server, err = ps.processHTTP(targetURL)
 		if err != nil {
 			return
 		}
@@ -84,6 +83,7 @@ func (ps *ProxyServer) Handle() {
 
 func (ps *ProxyServer) processHTTPS(targetURL *url.URL) (net.Conn, error) {
 	address := targetURL.Scheme + ":" + targetURL.Opaque
+	log.Printf("[processHTTPS] address: %s\n", address)
 	return ps.dial("tcp", address)
 }
 
@@ -91,8 +91,9 @@ func (ps *ProxyServer) processHTTP(targetURL *url.URL) (net.Conn, error) {
 	address := targetURL.Host
 	// Host部分若不带端口 则为默认的80
 	if strings.Index(targetURL.Host, ":") == -1 {
-		address = targetURL.Host + ":80"
+		address = address + ":80"
 	}
+	log.Printf("[processHTTP] address: %s\n", address)
 	return ps.dial("tcp", address)
 }
 
